@@ -145,3 +145,4 @@ Job com 3 tarefas do tipo Notebook, com dependências e agendamento:
 
 ## Autora
 Lívia Christine Soares Pinheiro - Turma 03 de Engenharia de Dados
+Link do github: https://github.com/thoughtfuliv/Lakehouse_Ecommerce
