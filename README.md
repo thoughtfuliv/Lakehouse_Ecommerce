@@ -102,8 +102,6 @@ O incremental está no próprio pipeline, não em script à parte:
 - Bronze: o checkpoint do Auto Loader lê só arquivos novos.
 - Silver e Gold: watermark + MERGE.
 
-Para simular um lote 2, coloque arquivos novos em `olist_raw/<tabela>/` e rode o Job de novo. Exemplo (rode **uma vez**; regravar cria arquivos com nomes novos e o Auto Loader os leria de novo):
-
 ```python
 ids = [r.order_id for r in bronze("orders").select("order_id").limit(1000).collect()]
 for pasta in ("orders", "items"):
@@ -114,8 +112,6 @@ for pasta in ("orders", "items"):
        .csv(f"{RAW}/{pasta}/lote2"))
 ```
 
-Prova de que não duplica: conte as linhas de `bronze.orders`, `silver.orders` e `gold.fact_vendas` antes do lote 2, depois de rodar com o lote 2 (devem subir) e depois de rodar de novo sem arquivos novos (devem ficar iguais).
-
 ## Orquestração (Job)
 Job com 3 tarefas do tipo Notebook, com dependências e agendamento:
 
@@ -125,34 +121,6 @@ Job com 3 tarefas do tipo Notebook, com dependências e agendamento:
 | `silver` | `02_silver` | `bronze` |
 | `gold` | `03_gold` | `silver` |
 
-Agendamento diário (por exemplo, 06:00). Linhagem: Catalog Explorer → `gold.fact_vendas` → aba **Lineage** → *See lineage graph*.
-
-## Recomeçar do zero
-A Silver e a Gold guardam watermark. Se apagar as tabelas, apague também as tabelas de controle, senão elas acham que já processaram tudo:
-
-```sql
--- Silver
-DROP TABLE IF EXISTS meu_catalog.silver.categories;
-DROP TABLE IF EXISTS meu_catalog.silver.customers;
-DROP TABLE IF EXISTS meu_catalog.silver.sellers;
-DROP TABLE IF EXISTS meu_catalog.silver.products;
-DROP TABLE IF EXISTS meu_catalog.silver.geolocation;
-DROP TABLE IF EXISTS meu_catalog.silver.orders;
-DROP TABLE IF EXISTS meu_catalog.silver.items;
-DROP TABLE IF EXISTS meu_catalog.silver.payments;
-DROP TABLE IF EXISTS meu_catalog.silver.reviews;
-DROP TABLE IF EXISTS meu_catalog.silver.quarentena;
-DROP TABLE IF EXISTS meu_catalog.silver.metricas_qualidade;
-DROP TABLE IF EXISTS meu_catalog.silver.controle;
--- Gold
-DROP TABLE IF EXISTS meu_catalog.gold.fact_vendas;
-DROP TABLE IF EXISTS meu_catalog.gold.kpi_receita_mensal;
-DROP TABLE IF EXISTS meu_catalog.gold.kpi_prazo_entrega;
-DROP TABLE IF EXISTS meu_catalog.gold.kpi_top_categorias;
-DROP TABLE IF EXISTS meu_catalog.gold.controle;
-```
-
-Para refazer também a Bronze, apague as tabelas `bronze.*` e as pastas de checkpoint da Bronze no volume `olist_chk` (`<tabela>/schema` e `<tabela>/checkpoint`).
 
 ## Decisões e limitações
 - Bronze sem transformação: permite reprocessar a Silver a qualquer momento.
