@@ -4,6 +4,7 @@
 # MAGIC Bruto preservado (tudo string) + `_source_file` + `_ingest_ts`. Incremental via checkpoint do Auto Loader.
 # MAGIC `multiLine` só em `reviews` (comentários com quebra de linha); nas demais deixa o Spark paralelizar a leitura.
 
+# COMMAND ----------
 # Configuração (catálogo, caminhos, helpers)
 from pyspark.sql import functions as F, Window
 from functools import reduce
@@ -64,5 +65,6 @@ def run_bronze():
 
 run_bronze()
 
+# COMMAND ----------
 for pasta in ARQUIVOS:
     print(pasta, bronze(pasta).count())

@@ -4,6 +4,7 @@
 # MAGIC Processa em **lote** só o que é novo na Bronze (watermark de `_ingest_ts` na tabela `silver.controle`), tipa, valida, deduplica e faz **MERGE**. Sem streaming, sem checkpoint.
 # MAGIC Violações vão para `silver.quarentena`. Reexecutar sem dados novos não altera nada.
 
+# COMMAND ----------
 # Configuração (catálogo, caminhos, helpers)
 from pyspark.sql import functions as F, Window
 from functools import reduce
@@ -42,6 +43,7 @@ def bronze(nome):
 # for t in ("quarentena", "metricas_qualidade", "controle"):
 #     spark.sql(f"DROP TABLE IF EXISTS {tbl('silver', t)}")
 
+# COMMAND ----------
 import time
 META = ["_source_file", "_ingest_ts"]
 QUAR = tbl("silver", "quarentena")
@@ -117,6 +119,7 @@ def silver_incremental(nome, tipar, regras, chaves, desc, prep=None, dedup_simpl
     comentar(destino, desc)
     print(f"[{nome}] ok em {time.time() - t0:.0f}s")
 
+# COMMAND ----------
 silver_incremental("categories",
     tipar=lambda b: b.select("product_category_name", "product_category_name_english", *META),
     regras={"chave_nao_nula": nn("product_category_name")},
@@ -219,6 +222,7 @@ silver_incremental("reviews",
     chaves=["review_id"],
     desc="Avaliações tipadas, sem duplicatas por review_id.")
 
+# COMMAND ----------
 comentar(QUAR, "Registros que violaram regras de qualidade na Silver. registro = linha original em JSON.")
 
 spark.sql(f"""
@@ -229,6 +233,7 @@ AS SELECT tabela, regra, COUNT(*) AS violacoes
    GROUP BY tabela, regra""")
 display(spark.table(tbl("silver", "metricas_qualidade")).orderBy("tabela", "regra"))
 
+# COMMAND ----------
 # Conciliação: bronze = silver + quarentena + duplicatas removidas
 rec = " UNION ALL ".join(
     f"""SELECT '{t}' AS tabela,

@@ -6,6 +6,7 @@
 # MAGIC Receita = soma de `price` (sem frete), excluindo pedidos `canceled` e `unavailable`.
 # MAGIC Pagamentos ficam fora da fato para não multiplicar linhas (um pedido pode ter vários pagamentos).
 
+# COMMAND ----------
 # Configuração (catálogo, caminhos, helpers)
 from pyspark.sql import functions as F, Window
 from functools import reduce
@@ -37,6 +38,7 @@ def comentar(tabela, texto):
 def bronze(nome):
     return spark.table(tbl("bronze", nome))
 
+# COMMAND ----------
 import time
 t0 = time.time()
 
@@ -73,6 +75,7 @@ LEFT JOIN (SELECT order_id, AVG(review_score) AS nota_media
            FROM {tbl('silver','reviews')} GROUP BY order_id) r ON r.order_id = i.order_id
 WHERE {filtro}"""
 
+# COMMAND ----------
 # 1) fato: cria vazia na 1ª vez e faz MERGE só do que é novo/alterado (itens ou pedidos)
 spark.sql(f"""CREATE TABLE IF NOT EXISTS {F_}
 COMMENT 'Fato de vendas. Grão: 1 linha por item de pedido (order_id + order_item_id).'
@@ -101,7 +104,7 @@ if houve_novo:
 else:
     print("[fact_vendas] sem dados novos na Silver")
 
-
+# COMMAND ----------
 # 2) KPIs: só recalcula se a fato mudou (ou se ainda não existem)
 if houve_novo or not spark.catalog.tableExists(tbl("gold", "kpi_receita_mensal")):
     VALIDOS = "order_status NOT IN ('canceled','unavailable')"
@@ -133,6 +136,7 @@ if houve_novo or not spark.catalog.tableExists(tbl("gold", "kpi_receita_mensal")
 else:
     print("[kpis] fato sem mudanças, mantidos")
 
+# COMMAND ----------
 # Checagem do grão: deve retornar 0 linhas
 display(spark.sql(f"""SELECT order_id, order_item_id, COUNT(*) n FROM {F_}
                       GROUP BY 1, 2 HAVING COUNT(*) > 1"""))
