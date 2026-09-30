@@ -142,3 +142,6 @@ Job com 3 tarefas do tipo Notebook, com dependências e agendamento:
 
 ### Linhagem da tabela `gold.fact_vendas` (lista)
 ![Lista de linhagem](evidencias/04_fact_lineage_list.png)
+
+## Autora
+Lívia Christine Soares Pinheiro - Turma 03 de Engenharia de Dados
