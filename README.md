@@ -161,8 +161,16 @@ Para refazer também a Bronze, apague as tabelas `bronze.*` e as pastas de check
 - Mudanças apenas em clientes, vendedores, produtos ou categorias não atualizam linhas antigas da `fact_vendas`.
 - Duplicatas por chave são resolvidas pelo `_ingest_ts` mais recente.
 
-## Evidências para a entrega
-- Print do Job com execuções bem-sucedidas.
-- Print do grafo de linhagem de `gold.fact_vendas`.
-- Tabela `silver.metricas_qualidade` (contagem de violações) e a conciliação da Silver.
-- Contagens antes e depois do lote 2 e após a reexecução.
+## Evidências
+
+### Job com as 3 tarefas (bronze → silver → gold)
+![Tarefas do Job](evidencias/01_job_tasks.png)
+
+### Execução bem-sucedida do Job
+![Execução do Job](evidencias/02_job_execution.png)
+
+### Linhagem da tabela `gold.fact_vendas` (grafo)
+![Grafo de linhagem](evidencias/03_fact_lineage.png)
+
+### Linhagem da tabela `gold.fact_vendas` (lista)
+![Lista de linhagem](evidencias/04_fact_lineage_list.png)
